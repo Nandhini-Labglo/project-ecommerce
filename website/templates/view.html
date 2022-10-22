@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <title>products</title>
+    </head>
+<body style = 'text-align: center;'>
+    <h1>Product Information</h1><br>
+<center>
+            {% for product in all_search_results %}
+            <h3>{{product.title}}</h3>
+            <p>{{product.brand}}</p>
+            <img src="{{ product.image.url }}">
+            <h4>{{product.price}}</h4>
+			{% endfor %}
+</center>      
+</body>
+</html>
