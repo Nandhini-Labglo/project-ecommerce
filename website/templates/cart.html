@@ -12,13 +12,22 @@
                 <img src="{{ item.product.image.url }}">
                 <h3>{{item.product}}</h3>
                 <p>{{item.user}}</p>
-                <h3>{{item.price}}</h3> 
+                <h3>{{item.product.price}}</h3> 
+                <a href="{% url 'remove_item_cart' item.product.id %}"><button type="submit">Remove</button></a><br><br>
+                {{ item.quantity }}
                 <br><br>
             </div>
+            
+            {% empty %}
+                <h2>your cart is empty</h2>
             {% endfor %}
         </div>   
     </div>
 
 Total Price:<h3>{{amount}}</h3>
+Tax:<h2>{{tax}}</h2>
+Grand total:<h2>{{grand_total}}</h2>
+<a href="{% url 'orderplaced' %}"><button type="submit">Place Order</button></a>
+
 </body>
 </html>
