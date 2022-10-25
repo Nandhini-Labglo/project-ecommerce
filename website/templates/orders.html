@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <title>orders</title>
+    </head>
+<body style = 'text-align: center;'>
+    <h1>Your Order</h1><br>
+<center>
+            {% for orders in orders %}
+            <div>
+                <img src="{{ orders.product.product.image.url }}" >
+                <h3>{{orders.product.product.price}}</h3>
+                <h2>{{orders.product.title}}</h2>
+                <p>{{orders.user.username}}</p>
+                Quantity :{{orders.product.quantity}}
+                <h4>{{orders.order_date}}</h4>
+                <h3>{{orders.status}}</h3>
+                Total amount : {{orders.get_total_price}}
+            </div>
+
+			{% endfor %}
+            
+</center>      
+</body>
+</html>

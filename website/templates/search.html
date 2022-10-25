@@ -11,9 +11,8 @@
         <h3>{{product.title}}</h3>
         <p>{{product.brand}}</p> 
         <h4>{{product.price}}</h4>
-        Quantity:
-        <input type="number" value="{{ item.quantity }}"> <br><br>
-    <a href = "{% url 'add_to_cart' product.id %}"><button>Add to Cart</button></a><br><br>
+        <br><br>
+        <a href = "{% url 'add_to_cart' product.id %}"><button type="sumbit">Add to Cart</button></a><br><br>
     </div>
     {% empty %}
         <h2>No results found</h2>
