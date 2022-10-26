@@ -1,3 +1,4 @@
+from django.forms import FloatField
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from website.models import Product, Cart, Order_pl
@@ -11,6 +12,8 @@ from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
+from django.db.models import F, Sum
+from django.contrib.auth.models import User
 
 # Create your views here.
 
@@ -48,12 +51,12 @@ def view(request):
 class ProductListview(ListView):
     model = Product
     fields = '__all__'
-    template_name = 'view.html'
+    template_name = 'product_view.html'
     context_object_name = 'all_search_results'
 
 class SearchView(ListView):
     model = Product
-    template_name = 'search.html'
+    template_name = 'product.html'
     context_object_name = 'all_search_results'
 
     def get_queryset(self):
@@ -69,48 +72,48 @@ class SearchView(ListView):
 def cart_detail(request):
     if request.user.is_authenticated:
         user = request.user
-        carts = Cart.objects.filter(user=user, is_active=False)
+        carts = Cart.objects.filter(user=user, is_active=True)
         amount = 0.0
         cart_product = [p for p in Cart.objects.all() if p.user == user]
         print(cart_product)
         if cart_product:
             for p in cart_product:
-                total_price = (p.product.price)
+                total_price = (p.quantity * p.product.price)
                 amount += total_price
-        context = {'form':carts,'amount':amount,}
-        return render(request,'cart.html',context)
+    context = {'form':carts,'amount':amount,}
+    return render(request,'cart.html',context)
 
 def add_to_cart(request,id):
     product = get_object_or_404(Product, id=id)
     cart, created = Cart.objects.get_or_create(
         product=product,
         user=request.user,
-        is_active=False
+        is_active=True
     )
-    order_qs = Order_pl.objects.filter(user=request.user, status=False)
+    order_qs = Order_pl.objects.filter(user=request.user, status=True)
     if order_qs.exists():
         order = order_qs[0]
         if order.product.filter(product__id=product.id).exists():
             cart.quantity += 1
             cart.save()
             messages.info(request, "This item quantity was updated.")
-            return redirect('cart')
+            return redirect('view')
         else:
             order.product.add(cart)
             messages.info(request, "This item was added to your cart.")
-            return redirect('cart')
+            return redirect('view')
     else:
         order_date = datetime.now()
         order = Order_pl.objects.create(user=request.user, order_date=order_date)
         order.product.add(cart)
         messages.info(request, "This item was added to your cart.")
-        return redirect('cart')
+        return redirect('view')
 
 def remove_item_cart(request, id):
     product = get_object_or_404(Product, id=id)
     order_qs = Order_pl.objects.filter(
         user=request.user,
-        status=False
+        status=True
     )
     if order_qs.exists():
         order = order_qs[0]
@@ -119,7 +122,7 @@ def remove_item_cart(request, id):
             cart = Cart.objects.filter(
                 product=product,
                 user=request.user,
-                is_active=False
+                is_active=True
             )[0]
             if cart.quantity > 1:
                 cart.quantity -= 1
@@ -136,29 +139,49 @@ def remove_item_cart(request, id):
         return redirect('cart')
 
 
-def remove_cart(request):
-    if request.method == 'POST':
-        prod_id = int(request.POST.get('product_id'))
-        if(Cart.objects.filter(product_id=prod_id,user=request.user)):
-            c = Cart.objects.get(product_id=prod_id,user=request.user)
-            c.delete()
-            context = {'status':'updated'}
-        return JsonResponse(context)
-    return redirect('cart')
+def remove_cart(request, id):
+    product = get_object_or_404(Product, id=id)
+    order_qs = Order_pl.objects.filter(
+        user=request.user,
+        status=True
+    )
+    if order_qs.exists():
+        order = order_qs[0]
+        if order.product.filter(product__id=product.id).exists():
+            cart = Cart.objects.filter(
+                product=product,
+                user=request.user,
+                is_active=True
+            )[0]
+            order.product.remove(cart)
+            cart.delete()
+            messages.info(request, "This item was removed from your cart.")
+            return redirect('cart')
+        else:  # change
+            messages.info(request, "This item was not in your cart")
+            return redirect('cart')
+    else:
+        messages.info(request, "You do not have an active order")
+        return redirect('cart')
 
 
-def order(request):
+def order(request,id):
     user = request.user
-    orders = Order_pl.objects.filter(user=user, status=False)
-    print(orders)
+    cart = Cart.objects.filter(Q(user_id = user.id) & Q(is_active = True))
+    order = Order_pl.objects.create(user = User.objects.get(id = user.id))
+    order.product.add(*cart)
+    Cart.objects.filter(user_id = id).update(is_active=False)
+    orders = Order_pl.objects.filter(user = user.id)
+    messages.info(request, "Your Order is Placed")
     return render(request, 'orders.html', {'orders': orders})
 
 
 def orderplaced(request):
     user = request.user
-    cart = Cart.objects.filter(user=user,is_active=True)
+    cart = Cart.objects.filter(user=user,is_active=False)
     for c in cart:
-       product = c.product
-       Order_pl(user=user).save()
-       c.delete()
+        Order_pl(user=user,status=False).save()
+        c.delete()
     return redirect('order')
+    
+        

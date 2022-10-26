@@ -1,24 +1,43 @@
 <html>
-    <head>
-        <title>orders</title>
-    </head>
-<body style = 'text-align: center;'>
-    <h1>Your Order</h1><br>
-<center>
-            {% for orders in orders %}
-            <div>
-                <img src="{{ orders.product.product.image.url }}" >
-                <h3>{{orders.product.product.price}}</h3>
-                <h2>{{orders.product.title}}</h2>
-                <p>{{orders.user.username}}</p>
-                Quantity :{{orders.product.quantity}}
-                <h4>{{orders.order_date}}</h4>
-                <h3>{{orders.status}}</h3>
-                Total amount : {{orders.get_total_price}}
-            </div>
 
-			{% endfor %}
-            
-</center>      
+<head>
+    <title>orders</title>
+</head>
+
+<body style="text-align: center;">
+    <h1>Your Order</h1><br>
+
+    {% for orders in orders %}
+    {% for product in orders.product.all %}
+    <div class="card" style="width: 18rem;">
+        <img class="card-img-top" src="{{ product.product.image.url }}" alt="Card image cap">
+        <div class="card-body">
+            <h4 class="card-title">{{ product.product.title }}</h4>
+            <p class="card-text">{{ product.product.brand }}</p>
+            <p class="card-text">Price - Rs.{{ product.product.price }}</p>
+            <p class="card-text">Quantity - {{ product.quantity }}</p>
+            <p class="card-text">{{ orders.order_date }}</p>
+            <p class="card-text">{{ orders.status }}</p>
+
+        </div>
+
+        <br><br>
+    </div>
+
+    <br><br>
+    {% endfor %}
+    {% endfor %}
+    {% for orders in orders %}
+    <div>
+        <p class="card-text">Total amount :Rs.{{orders.get_total_price}}</p>
+        <p class="card-text">Tax : 18 %</p>
+        <p class="card-text">Tax charges: {{orders.get_tax}}</p>
+        <p class="card-text">Grand Total :Rs.{{orders.get_grand_total}}</p>
+    </div>
+    {% endfor %}
+<br><br>
+{% for message in messages %}
+	{{message}}
+{% endfor %}
 </body>
 </html>

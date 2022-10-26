@@ -12,9 +12,9 @@ urlpatterns = [
     path('cart/',views.cart_detail,name='cart'),
     url(r'^add/(?P<id>\d+)/$', views.add_to_cart, name='add_to_cart'),
     #url(r'^remove/(?P<product_id>\d+)/$', views.remove, name='remove'),
-    path('remove_cart/',views.remove_cart,name='remove_cart'),
+    path('remove_cart/<id>',views.remove_cart,name='remove_cart'),
     path('orderplaced/',views.orderplaced,name='orderplaced'),
-    path('order/',views.order,name='order'),
+    path('order/<id>',views.order,name='order'),
     path('remove_item_cart/<id>', views.remove_item_cart, name='remove_item_cart'),
     #path('minus_cart/', views.minus_cart, name='minus_cart'),
 
