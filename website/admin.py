@@ -7,9 +7,9 @@ class productadmin(admin.ModelAdmin):
 admin.site.register(Product, productadmin)
 
 class cartadmin(admin.ModelAdmin):
-    list_display = ['product','user','quantity','created_at','price']
+    list_display = ['product','user','quantity','created_at','is_active']
 admin.site.register(Cart, cartadmin)
 
 class orderadmin(admin.ModelAdmin):
-    list_display = ['user','order_date']
+    list_display = ['user','order_date','status']
 admin.site.register(Order_pl, orderadmin)
