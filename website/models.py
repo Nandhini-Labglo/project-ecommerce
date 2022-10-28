@@ -5,6 +5,11 @@ from datetime import datetime
 from decimal import Decimal as D
 # Create your models here.
 
+ORDER_STATUS_CHOICES = (
+    ('completed', 'Completed'),
+    ('pending', 'Pending'),
+)
+
 class Product(models.Model):
     title = models.CharField(max_length=30)
     brand = models.CharField(max_length=30)
@@ -45,8 +50,7 @@ class Order_pl(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ManyToManyField(Cart)
     order_date = models.DateTimeField(auto_now_add=True)
-    status = models.BooleanField(default=True)
-
+    status = models.CharField(max_length=120, default='completed', choices=ORDER_STATUS_CHOICES)
     def __str__(self):
         return '{}'.format(self.user)
 
@@ -64,6 +68,13 @@ class Order_pl(models.Model):
         grand_total = self.get_total_price() + self.get_tax()
         return grand_total
 
+class Wishli(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ManyToManyField(Product)
+
+    def __str__(self):
+        return '{}'.format(self.product)
+    
 
     
 

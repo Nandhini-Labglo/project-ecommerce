@@ -10,10 +10,13 @@
             <button type="submit"> Search </button>
     </form>
     <a style = 'padding-right: 10px;padding-top: 100px;'href = "{% url 'cart' %}">cart</a> 
+    <a style = 'padding-right: 10px;padding-top: 100px;'href = "{% url 'wishlist' %}">wishlist</a> 
     <a style = 'padding-right: 500px;'href = "{% url 'logout' %}">logout</a>
 </body>
 </html>
-
+{% for message in messages %}
+	{{message}}
+{% endfor %}
 {% block content %}
 {% endblock %}
 

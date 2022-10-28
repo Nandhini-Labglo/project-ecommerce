@@ -1,0 +1,40 @@
+{% extends "index.html" %}
+{% block content %}
+<html>
+
+<head>
+  <title>wishlist</title>
+</head>
+
+<body style='text-align: center;'>
+  <h1>wishlist</h1><br>
+  {% comment %}
+
+    {% for w in wlist %}
+    <h3>{{w.product.title}}</h3>
+    <p>{{w.product.brand}}</p>
+    <img src="{{ w.product.image.url }}">
+    <h4>{{w.product.price}}</h4>
+    {% endfor %}
+  
+  {% endcomment %}
+
+
+  {% for w in wlist %}
+  <div class="card" style="width: 18rem;">
+    <img class="card-img-top" src="{{ w.product.image.url }}" alt="Card image cap">
+    <div class="card-body">
+      <h4 class="card-title">{{ w.product.title }}</h4>
+      <p class="card-text">{{ w.product.brand }}</p>
+      <p class="card-text">Price - {{ w.product.price }}</p>
+      <a href = "{% url 'add_to_cart' w.product.id %}"><button type="sumbit">Add to Cart</button></a><br><br>
+    </div>
+  </div>
+  {% endfor %}
+{% for message in messages %}
+  {{message}}
+{% endfor %}
+</body>
+
+</html>
+{% endblock %}

@@ -4,7 +4,7 @@
 	<div class="row">
 		<div class="col-lg-12">
 			<div class="box-element">
-                <a  class="btn btn-outline-dark" href="{% url 'view' %}"> Continue Shopping</a>
+                <a  class="btn btn-outline-dark" href="{% url 'view_p' %}"> Continue Shopping</a>
 			</div>
             <br>
             {% for item in form %}
@@ -30,9 +30,9 @@
     </div>
 
 Total Price:<h3>{{amount}}</h3>
-{% for item in form %}
-<a href="{% url 'orderplaced' item.product.id %}"><button type="submit">Place Order</button></a>
-{% endfor %}
+
+<a href="{% url 'orderplaced' %}"><button type="submit">Place Order</button></a>
+
 <br><br>
 {% for message in messages %}
 	{{message}}

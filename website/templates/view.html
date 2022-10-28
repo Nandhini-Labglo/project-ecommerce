@@ -7,10 +7,10 @@
 </head>
 
 <body style='text-align: center;'>
-  <h1>Product Information</h1><br>
+  <h1></h1><br>
   {% comment %}
 
-    {% for product in all_search_results %}
+    {% for product in form %}
     <h3>{{product.title}}</h3>
     <p>{{product.brand}}</p>
     <img src="{{ product.image.url }}">
@@ -20,19 +20,25 @@
   {% endcomment %}
 
 
-  {% for product in all_search_results %}
+  {% for product in product %}
   <div class="card" style="width: 18rem;">
     <img class="card-img-top" src="{{ product.image.url }}" alt="Card image cap">
     <div class="card-body">
       <h4 class="card-title">{{ product.title }}</h4>
       <p class="card-text">{{ product.brand }}</p>
       <p class="card-text">Price - {{ product.price }}</p>
+
+      {% if product in wish %} 
+        <a href = "{% url 'add_to_wishlist' product.id%}" style="color: red;"><button type="sumbit">Already to wishlist</button></a><br><br>
+      {% else %}
+        <a href = "{% url 'add_to_wishlist' product.id %}"><button type="sumbit" >Add to wishlist</button></a><br><br>
+      {% endif %}
       <a href = "{% url 'add_to_cart' product.id %}"><button type="sumbit">Add to Cart</button></a><br><br>
     </div>
   </div>
   {% endfor %}
 {% for message in messages %}
-	{{message}}
+  {{message}}
 {% endfor %}
 </body>
 
