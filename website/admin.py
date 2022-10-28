@@ -1,5 +1,5 @@
 from django.contrib import admin
-from website.models import Product, Cart, Order_pl
+from website.models import Product, Cart, Order_pl, Wishli
 # Register your models here.
 
 class productadmin(admin.ModelAdmin):
@@ -13,3 +13,7 @@ admin.site.register(Cart, cartadmin)
 class orderadmin(admin.ModelAdmin):
     list_display = ['user','order_date','status']
 admin.site.register(Order_pl, orderadmin)
+
+class wishadmin(admin.ModelAdmin):
+    list_display = ['user']
+admin.site.register(Wishli, wishadmin)
