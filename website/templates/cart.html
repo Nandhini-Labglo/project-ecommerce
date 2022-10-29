@@ -14,7 +14,7 @@
                 <div class="card-body">
                   <h4 class="card-title">{{ item.product.title }}</h4>
                   <p class="card-text">{{ item.product.brand }}</p>
-                  <p class="card-text">Price - ₹{{ item.product.price }}</p>
+                  <p class="card-text">Price - ₹{{ item.price }}</p>
                   <p class="card-text">Quantity - {{ item.quantity }}</p>
                   <p class="card-text">Tax- {{ item.get_tax }}</p>
                   <a href="{% url 'remove_item_cart' item.product.id %}"><button type="submit">Remove Item</button></a><br><br>
@@ -28,8 +28,7 @@
             {% endfor %}
         </div>   
     </div>
-
-Total Price:<h3>{{amount}}</h3>
+    Total Price:<h3>{{price.total}}</h3>
 
 <a href="{% url 'orderplaced' %}"><button type="submit">Place Order</button></a>
 

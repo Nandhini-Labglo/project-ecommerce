@@ -24,8 +24,8 @@ class Product(models.Model):
 class Cart(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    price = models.FloatField(null=True)
+    quantity = models.PositiveIntegerField(default=0)
+    price = models.FloatField(default=1000.0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
@@ -34,11 +34,8 @@ class Cart(models.Model):
 
     
     def get_total(self):
-        total = self.product.price * self.quantity
+        total = self.price * self.quantity
         return total
-
-    def get_final_price(self):
-        return self.get_total()
 
     def get_tax(self):
         grand_total = (18/100) * (self.get_total())
@@ -68,7 +65,7 @@ class Order_pl(models.Model):
         grand_total = self.get_total_price() + self.get_tax()
         return grand_total
 
-class Wishli(models.Model):
+class Wish_items(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ManyToManyField(Product)
 
