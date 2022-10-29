@@ -21,6 +21,7 @@
 
 
   {% for product in product %}
+  {% if product.stock == True %}
   <div class="card" style="width: 18rem;">
     <img class="card-img-top" src="{{ product.image.url }}" alt="Card image cap">
     <div class="card-body">
@@ -29,13 +30,14 @@
       <p class="card-text">Price - {{ product.price }}</p>
 
       {% if product in wish %} 
-        <a href = "{% url 'add_to_wishlist' product.id%}" style="color: red;"><button type="sumbit">Already to wishlist</button></a><br><br>
+        <a href = "" style="color: red;"><img src=""><button type="sumbit">Already in wishlist</button></a><br><br>
       {% else %}
         <a href = "{% url 'add_to_wishlist' product.id %}"><button type="sumbit" >Add to wishlist</button></a><br><br>
       {% endif %}
       <a href = "{% url 'add_to_cart' product.id %}"><button type="sumbit">Add to Cart</button></a><br><br>
     </div>
   </div>
+  {% endif %}
   {% endfor %}
 {% for message in messages %}
   {{message}}
