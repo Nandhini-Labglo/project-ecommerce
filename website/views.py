@@ -12,10 +12,11 @@ from django.db.models import F, Sum
 def index(request):
     return render(request, 'index.html')
 
-@login_required(redirect_field_name='login',login_url='login')
+#@login_required(redirect_field_name='login',login_url='login')
 def view(request):
     products = Product.objects.all()
     print(products)
+    wish_item = Wish_items.objects.get_or_create(user=request.user)
     wish = Wish_items.objects.get(user=request.user)
     print(wish)
     wishedProducts = wish.product.all()
@@ -33,12 +34,13 @@ class SearchView(ListView):
     def get_queryset(self):
         result = super(SearchView, self).get_queryset()
         query = self.request.GET.get('search')
+        print(query)
         if query:
             postresult = Product.objects.filter(
                 Q(title__icontains=query) | Q(brand__icontains=query), stock=True)
             result = postresult
         else:
-            result = None
+            result = Product.objects.none()
         return result
 
 def cart_detail(request):
@@ -49,7 +51,7 @@ def cart_detail(request):
     context = {'form': carts,'price':price}
     return render(request, 'cart.html', context)
 
-
+@login_required
 def add_to_cart(request, id):
     product = get_object_or_404(Product, id=id)
     cart, created = Cart.objects.get_or_create(
@@ -117,6 +119,7 @@ def remove_cart(request, id):
         messages.info(request, "You do not have an active order")
         return redirect('cart')
 
+@login_required
 def orderplaced(request):
     user = request.user
     print(user)
@@ -124,8 +127,6 @@ def orderplaced(request):
     price = cart.aggregate(total=Sum(F('quantity')*F('price')))
     tax_charges = cart.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
     grand_total = cart.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
-    #tax = int(18/100 * price)
-    #grand_total = price + tax
     print(cart)
     order = Order_pl.objects.create(user=request.user)
     order.product.add(*cart)
@@ -134,19 +135,18 @@ def orderplaced(request):
     return render(request, 'orders.html', {'orders': orders,'price':price,'tax_charges':tax_charges,'grand_total':grand_total})
 
 def cancel_order(request,id):
-    product = get_object_or_404(Product, id=id)
     order = get_object_or_404(Order_pl, id=id)
-    order.product.remove(product)
+    order.delete()
     return redirect('orderplaced')
 
 def add_to_wishlist(request, id):
-
-   products = Product.objects.get(id=id)
-   created,wishlist = Wish_items.objects.get_or_create(user=request.user)
-   wishlists = Wish_items.objects.get(user = request.user)
-   wishlists.product.add(products)
-   messages.success(request, "Added " + products.title + " to your WishList")
-   return redirect('view_p')
+    if request.method == "POST":
+        products = Product.objects.get(id=id)
+        created,wishlist = Wish_items.objects.get_or_create(user=request.user)
+        wishlists = Wish_items.objects.get(user = request.user)
+        wishlists.product.add(products)
+        messages.success(request, "Added " + products.title + " to your WishList")
+    return redirect('view_p')
 
 def remove_from_wishlist(request, id):
 
@@ -156,6 +156,7 @@ def remove_from_wishlist(request, id):
    messages.success(request, products.title + " has been removed from your WishList")
    return redirect('view_p')
 
+@login_required(redirect_field_name='login',login_url='login')
 def view_wishlist(request):
     wishlist = Wish_items.objects.filter(user=request.user)
     #wish = wishlist.product.all()

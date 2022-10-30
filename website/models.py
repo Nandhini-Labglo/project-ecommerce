@@ -19,7 +19,7 @@ class Product(models.Model):
     stock = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{} {}'.format(self.title,self.brand)
+        return '{}'.format(self.id)
 
 class Cart(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -30,7 +30,7 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return '{}'.format(self.product)
+        return '{}'.format(self.user)
 
     
     def get_total(self):
@@ -70,7 +70,7 @@ class Wish_items(models.Model):
     product = models.ManyToManyField(Product)
 
     def __str__(self):
-        return '{}'.format(self.product)
+        return '{}'.format(self.user)
     
 
     
