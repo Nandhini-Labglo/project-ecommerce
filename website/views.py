@@ -13,10 +13,10 @@ def index(request):
     return render(request, 'index.html')
 
 @login_required(redirect_field_name='login',login_url='login')
-def view(request):
+def view(request): # please name your function properly based on what the view does
     products = Product.objects.all()
     print(products)
-    wish = Wish_items.objects.get(user=request.user)
+    wish = Wish_items.objects.get(user=request.user) # why get method here? A user can have mutliple
     print(wish)
     wishedProducts = wish.product.all()
     w = list(wishedProducts)
@@ -38,11 +38,11 @@ class SearchView(ListView):
                 Q(title__icontains=query) | Q(brand__icontains=query), stock=True)
             result = postresult
         else:
-            result = None
+            result = None # Product.objects.none
         return result
 
 def cart_detail(request):
-    if request.user.is_authenticated:
+    if request.user.is_authenticated: # use decorator
         user = request.user
         carts = Cart.objects.filter(Q(user=user) & Q (is_active=True))
         price = carts.aggregate(total=Sum(F('quantity')*F('price')))
@@ -50,7 +50,11 @@ def cart_detail(request):
     return render(request, 'cart.html', context)
 
 
-def add_to_cart(request, id):
+def add_to_cart(request, id): # always user {{model_name}}_id , ex product_id
+    """
+    CUD - Must be POST request
+    R - Get method
+    """
     product = get_object_or_404(Product, id=id)
     cart, created = Cart.objects.get_or_create(
         product=product,
@@ -69,12 +73,16 @@ def add_to_cart(request, id):
     messages.info(request, "This item quantity was updated.")
     return redirect('view_p')
 
+"""
+from website.models import SUCCESS,PENDING, FAILED
+"""
 def remove_item_cart(request, id):
     product = get_object_or_404(Product, id=id)
     order_qs = Order_pl.objects.filter(
         user=request.user,
-        status='completed'
+        status=SUCCESS
     )
+    # Order should create when you make payment or start the payment process
     if order_qs.exists():
         order = order_qs[0]
         cart = Cart.objects.filter(
@@ -95,11 +103,11 @@ def remove_item_cart(request, id):
         return redirect('cart')
 
 
-def remove_cart(request, id):
+def remove_cart(request, id): # Use cart_id to remove the product from cart. So we dont need to query 
     product = get_object_or_404(Product, id=id)
     order_qs = Order_pl.objects.filter(
         user=request.user,
-        status='completed'
+        status=SUCCESS
     )
     if order_qs.exists():
         order = order_qs[0]
@@ -130,10 +138,10 @@ def orderplaced(request):
     order = Order_pl.objects.create(user=request.user)
     order.product.add(*cart)
     cart.update(is_active=False)
-    orders = Order_pl.objects.filter(user=user, status='completed')
+    orders = Order_pl.objects.filter(user=user, status=SUCCESS)
     return render(request, 'orders.html', {'orders': orders,'price':price,'tax_charges':tax_charges,'grand_total':grand_total})
 
-def cancel_order(request,id):
+def cancel_order(request,id): # pass order_id to cancel
     product = get_object_or_404(Product, id=id)
     order = get_object_or_404(Order_pl, id=id)
     order.product.remove(product)
@@ -142,9 +150,10 @@ def cancel_order(request,id):
 def add_to_wishlist(request, id):
 
    products = Product.objects.get(id=id)
-   created,wishlist = Wish_items.objects.get_or_create(user=request.user)
-   wishlists = Wish_items.objects.get(user = request.user)
-   wishlists.product.add(products)
+   created,wishlist = Wish_items.objects.get_or_create(user=request.user) 
+   wishlists = Wish_items.objects.get(user = request.user) ## duplicate 
+   wishlists.product.add(products) # you havent check if that product already in the wishlist
+   # 
    messages.success(request, "Added " + products.title + " to your WishList")
    return redirect('view_p')
 
