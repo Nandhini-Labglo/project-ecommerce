@@ -85,6 +85,9 @@ DATABASES = {
     }
 }
 
+LOGIN_REDIRECT_URL = 'view_p'
+LOGOUT_REDIRECT_URL = 'login'
+
 
 
 # Password validation

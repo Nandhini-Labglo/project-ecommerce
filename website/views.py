@@ -1,46 +1,18 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from sympy import total_degree
 from website.models import Product, Cart, Order_pl, Wish_items
 from django.views.generic.list import ListView
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
-from datetime import datetime
 from django.db.models import F, Sum
 # Create your views here.
 
-def login_request(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.info(request, f"You are now logged in as {username}.")
-                return redirect('index')
-            else:
-                messages.error(request, "Invalid username or password.")
-    else:
-        form = AuthenticationForm()
-    return render(request, 'registration/login.html', {'form': form})
-
-
-@login_required(redirect_field_name='login', login_url='login')
-def logout_request(request):
-	logout(request)
-	return redirect('login')
-
-
-@login_required(redirect_field_name='next', login_url='login')
+@login_required
 def index(request):
     return render(request, 'index.html')
 
-
+@login_required(redirect_field_name='login',login_url='login')
 def view(request):
     products = Product.objects.all()
     print(products)
@@ -52,14 +24,6 @@ def view(request):
 
     context = {'product': products,'wish':w}
     return render(request, 'view.html', context)
-
-
-class ProductListview(ListView):
-    model = Product
-    fields = '__all__'
-    template_name = 'product_view.html'
-    context_object_name = 'all_search_results'
-
 
 class SearchView(ListView):
     model = Product
@@ -76,7 +40,6 @@ class SearchView(ListView):
         else:
             result = None
         return result
-
 
 def cart_detail(request):
     if request.user.is_authenticated:
@@ -158,25 +121,30 @@ def orderplaced(request):
     user = request.user
     print(user)
     cart = Cart.objects.filter(Q(user=user) & Q(is_active=True))
+    price = cart.aggregate(total=Sum(F('quantity')*F('price')))
+    tax_charges = cart.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
+    grand_total = cart.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
+    #tax = int(18/100 * price)
+    #grand_total = price + tax
     print(cart)
-    order_date = datetime.now()
-    order = Order_pl.objects.create(user=request.user, order_date=order_date)
+    order = Order_pl.objects.create(user=request.user)
     order.product.add(*cart)
     cart.update(is_active=False)
     orders = Order_pl.objects.filter(user=user, status='completed')
-    return render(request, 'orders.html', {'orders': orders})
+    return render(request, 'orders.html', {'orders': orders,'price':price,'tax_charges':tax_charges,'grand_total':grand_total})
 
 def cancel_order(request,id):
-    order = Order_pl.objects.filter(id=id)
-    order.delete()
-    return redirect('order')
-
+    product = get_object_or_404(Product, id=id)
+    order = get_object_or_404(Order_pl, id=id)
+    order.product.remove(product)
+    return redirect('orderplaced')
 
 def add_to_wishlist(request, id):
 
-   products = get_object_or_404(Product, id=id)
-   wishlist = get_object_or_404(Wish_items, user=request.user)
-   wishlist.product.add(products)
+   products = Product.objects.get(id=id)
+   created,wishlist = Wish_items.objects.get_or_create(user=request.user)
+   wishlists = Wish_items.objects.get(user = request.user)
+   wishlists.product.add(products)
    messages.success(request, "Added " + products.title + " to your WishList")
    return redirect('view_p')
 
@@ -188,7 +156,7 @@ def remove_from_wishlist(request, id):
    messages.success(request, products.title + " has been removed from your WishList")
    return redirect('view_p')
 
-
 def view_wishlist(request):
-    wish = Wish_items.objects.filter(user=request.user)
-    return render(request, 'wishlist.html', {'wlist': wish})
+    wishlist = Wish_items.objects.filter(user=request.user)
+    #wish = wishlist.product.all()
+    return render(request, 'wishlist.html', {'wlist': wishlist})
