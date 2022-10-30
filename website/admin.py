@@ -3,7 +3,7 @@ from website.models import Product, Cart, Order_pl, Wish_items
 # Register your models here.
 
 class productadmin(admin.ModelAdmin):
-    list_display = ['title','brand','image','price','stock']
+    list_display = ['id','title','brand','image','price','stock']
 admin.site.register(Product, productadmin)
 
 class cartadmin(admin.ModelAdmin):
