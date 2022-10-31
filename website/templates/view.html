@@ -29,12 +29,12 @@
       <p class="card-text">{{ product.brand }}</p>
       <p class="card-text">Price - {{ product.price }}</p>
 
-    <form method="post" action="">
+    <form method="post" action="{% url 'add_to_wishlist' product.id %}">
       {% csrf_token %}
       {% if product in wish %} 
-        <a href = "" style="color: red;"><button type="sumbit">Already in wishlist</button></a><br><br>
+        <button type="sumbit">Already in wishlist</button><br><br>
       {% else %}
-        <a href = "{% url 'add_to_wishlist' product.id %}"><button type="sumbit">Add to wishlist</button></a><br><br>
+        <button type="sumbit">Add to wishlist</button><br><br>
       {% endif %}
     </form>
 

@@ -14,14 +14,11 @@ def index(request):
 
 #@login_required(redirect_field_name='login',login_url='login')
 def view(request):
+    
     products = Product.objects.all()
-    print(products)
-    wish_item = Wish_items.objects.get_or_create(user=request.user)
-    wish = Wish_items.objects.get(user=request.user)
-    print(wish)
-    wishedProducts = wish.product.all()
+    wish_item,created = Wish_items.objects.get_or_create(user=request.user)
+    wishedProducts = wish_item.product.all()
     w = list(wishedProducts)
-    print(w)
 
     context = {'product': products,'wish':w}
     return render(request, 'view.html', context)
