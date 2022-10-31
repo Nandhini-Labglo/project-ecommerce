@@ -1,19 +1,24 @@
 from django.contrib import admin
-from website.models import Product, Cart, Order_pl, Wish_items
+from website.models import Brand, Product, Cart, Order, Wishlistitems
+
 # Register your models here.
 
+class Brandadmin(admin.ModelAdmin):
+    list_display = ['id','brand_name','brand_logo']
+admin.site.register(Brand, Brandadmin)
+
 class productadmin(admin.ModelAdmin):
-    list_display = ['id','title','brand','image','price','stock']
+    list_display = ['id','title','image','price','in_stock']
 admin.site.register(Product, productadmin)
 
 class cartadmin(admin.ModelAdmin):
-    list_display = ['product','user','quantity','created_at','is_active']
+    list_display = ['product','user','quantity','is_active']
 admin.site.register(Cart, cartadmin)
 
 class orderadmin(admin.ModelAdmin):
-    list_display = ['user','order_date','status']
-admin.site.register(Order_pl, orderadmin)
+    list_display = ['user','status']
+admin.site.register(Order, orderadmin)
 
 class wishadmin(admin.ModelAdmin):
     list_display = ['user']
-admin.site.register(Wish_items, wishadmin)
+admin.site.register(Wishlistitems, wishadmin)
