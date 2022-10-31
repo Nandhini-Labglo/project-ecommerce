@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'ecommerce.wsgi.application'
 DATABASES = {
         'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ecommerce',
+        'NAME': 'ecomweb',
         'USER': 'root',
         'PASSWORD':'password',
         'HOST': 'localhost',
@@ -85,7 +85,7 @@ DATABASES = {
     }
 }
 
-LOGIN_REDIRECT_URL = 'view_p'
+LOGIN_REDIRECT_URL = 'view_product'
 LOGOUT_REDIRECT_URL = 'login'
 
 

@@ -7,6 +7,7 @@
 </head>
 
 <body style='text-align: center;'>
+  
   <h1></h1><br>
   {% comment %}
 
@@ -19,7 +20,7 @@
   
   {% endcomment %}
 
-
+  
   {% for product in product %}
   {% if product.stock == True %}
   <div class="card" style="width: 18rem;">
@@ -29,16 +30,19 @@
       <p class="card-text">{{ product.brand }}</p>
       <p class="card-text">Price - {{ product.price }}</p>
 
-    <form method="post" action="{% url 'add_to_wishlist' product.id %}">
-      {% csrf_token %}
+    
       {% if product in wish %} 
-        <button type="sumbit">Already in wishlist</button><br><br>
+        <button type="submit">Already in wishlist</button><br><br>
       {% else %}
-        <button type="sumbit">Add to wishlist</button><br><br>
-      {% endif %}
+      <form method="post" action="{% url 'add_to_wishlist' product.id %}">
+        {% csrf_token %}
+        <button type="submit">Add to wishlist</button><br>
     </form>
-
-      <a href = "{% url 'add_to_cart' product.id %}"><button type="sumbit">Add to Cart</button></a><br><br>
+    {% endif %}
+    <form method="post" action="{% url 'add_to_cart' product.id %}">
+      {% csrf_token %}
+      <button type="submit">Add to Cart</button><br>
+    </form>
     </div>
   </div>
   {% endif %}

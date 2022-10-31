@@ -7,6 +7,10 @@
 <body style="text-align: center;">
     <h1>Your Order</h1><br>
 
+    <div class="box-element">
+        <a  class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a>
+    </div>
+
     {% for orders in orders %}
     {% for product in orders.product.all %}
     
@@ -22,7 +26,10 @@
         </div>
     </div>
     <br><br>
-    <a href = "{% url 'cancel_order' product.id %}"><button type="sumbit">cancel order</button></a>
+    <form method="post" action="{% url 'cancel_order' product.id %}">
+        {% csrf_token %}
+        <button type="sumbit">cancel order</button><br>
+    </form>
     {% endfor %}
     {% endfor %}
     

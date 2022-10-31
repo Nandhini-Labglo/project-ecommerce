@@ -1,37 +1,51 @@
-from email.policy import default
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime
-from decimal import Decimal as D
+
 # Create your models here.
 
+FAILED = 0
+SUCCESS = 1
+PENDING = 2
 
 ORDER_STATUS_CHOICES = (
-    ('completed', 'Completed'),
-    ('pending', 'Pending'),
-)
+    (SUCCESS, 'Success'),
+    (PENDING, 'Pending'),
+    (FAILED, 'Failed'),
+)  
 
-class Product(models.Model):
+class TimeStampBaseModel(models.Model):
+    created_on =  models.DateTimeField(auto_now_add=True)
+    updated_on =  models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True 
+
+class Brand(TimeStampBaseModel):
+    brand_name = models.CharField(max_length=30)
+    brand_logo = models.ImageField(upload_to='images/brands')
+
+
+class Product(TimeStampBaseModel):
     title = models.CharField(max_length=30)
-    brand = models.CharField(max_length=30)
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='images/products')
-    price = models.FloatField(default=100.0)
-    description = models.CharField(max_length=30, blank=True)
-    stock = models.BooleanField(default=True)
+    price = models.FloatField()
+    description = models.TextField(max_length=120, blank=True)
+    in_stock = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{}'.format(self.id)
+        return '{} {}'.format(self.title)
 
-class Cart(models.Model):
+class Cart(TimeStampBaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=0)
-    price = models.FloatField(default=1000.0)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    quantity = models.PositiveIntegerField()
+    price = models.FloatField()
+    is_active = models.BooleanField()
+    
 
     def __str__(self):
-        return '{}'.format(self.user)
+        return '{}'.format(self.product)
 
     
     def get_total(self):
@@ -44,11 +58,11 @@ class Cart(models.Model):
 
 
 
-class Order_pl(models.Model):
+class Order(TimeStampBaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ManyToManyField(Cart)
-    order_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=120, default='completed', choices=ORDER_STATUS_CHOICES)
+    status = models.CharField(max_length=120, default='Pending', choices=ORDER_STATUS_CHOICES)
+
     def __str__(self):
         return '{}'.format(self.user)
 
@@ -66,7 +80,7 @@ class Order_pl(models.Model):
         grand_total = self.get_total_price() + self.get_tax()
         return grand_total
 
-class Wish_items(models.Model):
+class Wishlistitems(TimeStampBaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ManyToManyField(Product)
 
