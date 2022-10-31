@@ -5,6 +5,7 @@ from datetime import datetime
 from decimal import Decimal as D
 # Create your models here.
 
+
 ORDER_STATUS_CHOICES = (
     ('completed', 'Completed'),
     ('pending', 'Pending'),
