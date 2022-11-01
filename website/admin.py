@@ -16,7 +16,7 @@ class cartadmin(admin.ModelAdmin):
 admin.site.register(Cart, cartadmin)
 
 class orderadmin(admin.ModelAdmin):
-    list_display = ['user','status']
+    list_display = ['user','status','total_product_price','total_tax','total_order_price']
 admin.site.register(Order, orderadmin)
 
 class wishadmin(admin.ModelAdmin):
