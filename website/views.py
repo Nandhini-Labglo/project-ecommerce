@@ -1,5 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from requests import request
 
 from website.models import Product, Cart, Order, Wishlistitems
 from django.views.generic.list import ListView
@@ -34,19 +35,20 @@ class SearchView(ListView):
         print(query)
         if query:
             postresult = Product.objects.filter(
-                Q(title__icontains=query) | Q(brand__icontains=query), stock=True)
+                Q(title__icontains=query) | Q(brand__brand_name__icontains=query), in_stock=True)
             result = postresult
         else:
             result = Product.objects.none()
         return result
-
+    
     def get_context_data(self, **kwargs):
-        data = super().get_context_data(**kwargs)
-        wish_item,created = Wishlistitems.objects.get()
+        context = super(SearchView, self).get_context_data(**kwargs)
+        wish_item = Wishlistitems.objects.get(user=self.request.user.id)
         wishedProducts = wish_item.product.all()
-        w = list(wishedProducts)
-
-        return 
+        context['cc'] = wishedProducts
+        print(context)
+        return context
+    
 
 def cart_detail(request):
     if request.user.is_authenticated:
@@ -63,6 +65,7 @@ def add_to_cart(request, product_id):
         cart, created = Cart.objects.get_or_create(
             product=product,
             price = product.price,
+            quantity = 0,
             user=request.user,
             is_active=True
         )
@@ -102,6 +105,11 @@ def remove_cart(request, cart_id):
         cart.delete()
     return redirect('cart')
 
+def order_history(request):
+    order = Order.objects.filter(user=request.user)
+    context = {'order':order}
+    return render(request, 'order_history.html',context)
+
 @login_required
 def order_placed(request):
     user = request.user
@@ -109,18 +117,22 @@ def order_placed(request):
     price = cart.aggregate(total=Sum(F('quantity')*F('price')))
     tax_charges = cart.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
     grand_total = cart.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
-    order = Order.objects.create(user=user)
-    order.product.add(*cart)
-    cart.update(is_active=False)
-    orders = Order.objects.filter(user=user, status='completed')
-    return render(request, 'orders.html', {'orders': orders,'price':price,'tax_charges':tax_charges,'grand_total':grand_total})
+    if cart:
+        order = Order.objects.create(user=user, total_product_price=price['total'], total_tax=tax_charges['tax'], total_order_price=grand_total['grand_total'])
+        order.product.add(*cart)
+        cart.update(is_active=False)
+        #orders.update(total_product_price=price['total'],total_tax=tax_charges['tax'],total_order_price=grand_total['grand_total'])
+    else:
+        orders = Order.objects.latest('id')
+    return render(request, 'orders.html',{'orders':orders})
 
 def cancel_order(request, cart_id):
     print(request.method)
     if request.method == "POST":
         cart = get_object_or_404(Cart, id=cart_id)
         cart.delete()
-    return redirect('orderplaced')
+    return redirect('order_history')
+
 
 def add_to_wishlist(request, product_id):
     print(request.method)
