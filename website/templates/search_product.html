@@ -6,15 +6,25 @@
     </head>
 <body style = 'text-align: center;'>
     {% for product in all_search_results %}
+    {{product.title}}
     <div class="card" style="width: 18rem;">
         <img class="card-img-top" src="{{ product.image.url }}" alt="Card image cap">
         <div class="card-body">
           <h4 class="card-title">{{ product.title }}</h4>
           <p class="card-text">{{ product.brand }}</p>
           <p class="card-text">Price - {{ product.price }}</p>
-          <a href = "{% url 'add_to_wishlist' product.id %}"><button type="sumbit">Add to Wishlist</button></a>
+          {% if product in cc %} 
+            <button type="submit">Already in wishlist</button><br><br>
+          {% else %}
+            <form method="post" action="{% url 'add_to_wishlist' product.id %}">
+                {% csrf_token %}
+                    <button type="submit">Add to wishlist</button><br>
+            </form>
+          {% endif %}
+
           <a href = "{% url 'add_to_cart' product.id %}"><button type="sumbit">Add to Cart</button></a><br><br>
         </div>
+        
     </div>
     {% empty %}
         <h2>No results found</h2>

@@ -9,8 +9,8 @@ PENDING = 2
 
 ORDER_STATUS_CHOICES = (
     (SUCCESS, 'Success'),
-    (PENDING, 'Pending'),
     (FAILED, 'Failed'),
+    (PENDING, 'Pending'),
 )  
 
 class TimeStampBaseModel(models.Model):
@@ -23,6 +23,9 @@ class TimeStampBaseModel(models.Model):
 class Brand(TimeStampBaseModel):
     brand_name = models.CharField(max_length=30)
     brand_logo = models.ImageField(upload_to='images/brands')
+     
+    def __str__(self):
+        return '{}'.format(self.brand_name)
 
 
 class Product(TimeStampBaseModel):
@@ -34,7 +37,7 @@ class Product(TimeStampBaseModel):
     in_stock = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{} {}'.format(self.title)
+        return '{}'.format(self.title)
 
 class Cart(TimeStampBaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -61,7 +64,10 @@ class Cart(TimeStampBaseModel):
 class Order(TimeStampBaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ManyToManyField(Cart)
-    status = models.CharField(max_length=120, default='Pending', choices=ORDER_STATUS_CHOICES)
+    status = models.IntegerField(default=2, choices=ORDER_STATUS_CHOICES)
+    total_product_price = models.FloatField()
+    total_tax = models.FloatField()
+    total_order_price = models.FloatField()
 
     def __str__(self):
         return '{}'.format(self.user)
