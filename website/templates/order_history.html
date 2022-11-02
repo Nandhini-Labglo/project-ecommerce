@@ -1,4 +1,6 @@
+{% load static %}
 <html>
+<link rel="stylesheet" href="{% static 'mycss.css' %}">
 
 <head>
     <title>orders</title>
@@ -8,34 +10,40 @@
     <h1> Order history </h1><br>
 
     <div class="box-element">
-        <a  class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a>
+        <a class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a>
     </div>
     {% for order in order %}
     {% for product in order.product.all %}
-    <div class="card" style="width: 18rem;">
-        <img class="card-img-top" src="{{ product.product.image.url }}" alt="Card image cap">
-        <div class="card-body">
-            <h4 class="card-title">{{ product.product.title }}</h4>
-            <p class="card-text">{{ product.product.brand }}</p>
-            <p class="card-text">Price - Rs.{{ product.price }}</p>
-            <p class="card-text">Quantity - {{ product.quantity }}</p>
-            <p class="card-text">{{ order.created_on }}</p>
-            <p class="card-text">{{ order.status }}</p>
-            <p class="card-text">Total amount :Rs.{{order.total_product_price}}</p>
-            <p class="card-text">Tax : 18 %</p>
-            <p class="card-text">Tax charges: {{order.total_tax}}</p>
-            <p class="card-text">Grand Total: {{order.total_order_price}}</p>
+    <div class="container">
+        <div class="row">
+            <div class="card" style="width: 18rem;">
+                <img id="img" class="card-img-top" src="{{ product.product.image.url }}" alt="Card image cap">
+                <div class="card-body">
+                    <h4 class="card-title">{{ product.product.title }}</h4>
+                    <p class="card-text">{{ product.product.brand }}</p>
+                    <p class="card-text">Price - Rs.{{ product.price }}</p>
+                    <p class="card-text">Quantity - {{ product.quantity }}</p>
+                    <p class="card-text">{{ order.created_on }}</p>
+                    <p class="card-text">{{ order.status }}</p>
+                    <p class="card-text">Total amount :Rs.{{order.total_product_price}}</p>
+                    <p class="card-text">Tax : 18 %</p>
+                    <p class="card-text">Tax charges: {{order.total_tax}}</p>
+                    <p class="card-text">Grand Total: {{order.total_order_price}}</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'cancel_order' order.id product.id %}">
+                {% csrf_token %}
+                <button type="sumbit">cancel order</button><br>
+            </form>
         </div>
     </div>
-    <form method="post" action="{% url 'cancel_order' product.id %}">
-        {% csrf_token %}
-        <button type="sumbit">cancel order</button><br>
-    </form>
+    <br>
     {% endfor %}
     {% endfor %}
 
-{% for message in messages %}
-	{{message}}
-{% endfor %}
+    {% if messages %}
+    {{message}}
+    {% endif %}
 </body>
+
 </html>

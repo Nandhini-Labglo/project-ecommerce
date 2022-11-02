@@ -1,6 +1,8 @@
 {% extends "index.html" %}
 {% block content %}
+{% load static %}
 <html>
+<link rel="stylesheet" href="{% static 'mycss.css' %}">
 
 <head>
   <title>wishlist</title>
@@ -8,36 +10,41 @@
 
 <body style='text-align: center;'>
   <h1>wishlist</h1><br>
-  
+
   <div class="box-element">
-    <a  class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a>
+    <a class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a>
   </div>
 
   {% for w in wlist %}
   {% for product in w.product.all %}
+  <div class="container">
+    <div class="row">
+      <div class="card" style="width: 18rem;">
+        <img id="img" src="{{ product.image.url }}" alt="Card image cap">
+        <div class="card-body">
+          <h4 class="card-title">{{ product.title }}</h4>
+          <p class="card-text">{{ product.brand }}</p>
+          <p class="card-text">Price - {{ product.price }}</p>
+          <form method="post" action="{% url 'add_to_cart' product.id %}">
+            {% csrf_token %}
+            <button type="submit">Add to Cart</button><br>
+          </form>
 
-  <div class="card" style="width: 18rem;">
-    <img class="card-img-top" src="{{ product.image.url }}" alt="Card image cap">
-    <div class="card-body">
-      <h4 class="card-title">{{ product.title }}</h4>
-      <p class="card-text">{{ product.brand }}</p>
-      <p class="card-text">Price - {{ product.price }}</p>
-      <form method="post" action="{% url 'add_to_cart' product.id %}">
-        {% csrf_token %}
-          <button type="submit">Add to Cart</button><br>
-      </form>
-
-      <form method="post" action="{% url 'remove_wish' product.id %}">
-        {% csrf_token %}
-          <button type="sumbit">remove wishlist</button><br>
-      </form>
+          <form method="post" action="{% url 'remove_wish' product.id %}">
+            {% csrf_token %}
+            <button type="sumbit">remove wishlist</button><br>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-  {% endfor %}
-  {% endfor %}
-{% for message in messages %}
-  {{message}}
-{% endfor %}
+  <br>
+      {% endfor %}
+      {% endfor %}
+
+      {% if messages %}
+      {{message}}
+      {% endif %}
 </body>
 
 </html>

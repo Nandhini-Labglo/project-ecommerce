@@ -1,0 +1,18 @@
+.container {
+    margin: auto;
+    
+    display: inline-block;
+  }
+
+#img:hover{
+    color: aqua;
+    background-color: brown;
+    transform: scale(1.1);
+    transition-duration: 1s;
+}
+#nav{
+    text-decoration: None;
+    color: black;
+    text-align: left;
+    word-spacing: 1cm;
+}

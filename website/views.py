@@ -118,21 +118,36 @@ def order_placed(request):
     tax_charges = cart.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
     grand_total = cart.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
     if cart:
-        order = Order.objects.create(user=user, total_product_price=price['total'], total_tax=tax_charges['tax'], total_order_price=grand_total['grand_total'])
-        order.product.add(*cart)
+        orders = Order.objects.create(user=user, total_product_price=price['total'], total_tax=tax_charges['tax'], total_order_price=grand_total['grand_total'])
+        orders.product.add(*cart)
         cart.update(is_active=False)
         #orders.update(total_product_price=price['total'],total_tax=tax_charges['tax'],total_order_price=grand_total['grand_total'])
     else:
         orders = Order.objects.latest('id')
+    print(orders)
     return render(request, 'orders.html',{'orders':orders})
 
-def cancel_order(request, cart_id):
+def cancel_order(request, order_id, cart_id):
     print(request.method)
     if request.method == "POST":
         cart = get_object_or_404(Cart, id=cart_id)
         cart.delete()
-        order =  Order.objects.filter(user=request.user)
-    return redirect('order_history')
+        order = Order.objects.filter(user_id = request.user.id).values('product__price', 'product__quantity')
+        print(order)
+        l = [] 
+        if order:
+            for i in order:
+                if i['product__price'] is not None:
+                    l.append(i['product__price']* i['product__quantity'])
+        else:
+            l = [0,0]
+    price = sum(l)
+    tax = price * 0.18
+    total = tax+price
+    Order.objects.filter(id=order_id).update(total_product_price=price,total_tax=tax,total_order_price=total)
+    if total == 0:
+        Order.objects.filter(id = order_id).update(status = 0)
+    return redirect('orderplaced')
 
 
 def add_to_wishlist(request, product_id):
