@@ -12,11 +12,11 @@ class productadmin(admin.ModelAdmin):
 admin.site.register(Product, productadmin)
 
 class cartadmin(admin.ModelAdmin):
-    list_display = ['product','user','quantity','is_active']
+    list_display = ['product','user','quantity','is_active','price']
 admin.site.register(Cart, cartadmin)
 
 class orderadmin(admin.ModelAdmin):
-    list_display = ['user','status']
+    list_display = ['user','status','total_product_price','total_tax','total_order_price']
 admin.site.register(Order, orderadmin)
 
 class wishadmin(admin.ModelAdmin):

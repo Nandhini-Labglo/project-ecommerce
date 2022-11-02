@@ -131,6 +131,7 @@ def cancel_order(request, cart_id):
     if request.method == "POST":
         cart = get_object_or_404(Cart, id=cart_id)
         cart.delete()
+        order =  Order.objects.filter(user=request.user)
     return redirect('order_history')
 
 
