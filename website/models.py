@@ -45,7 +45,6 @@ class Cart(TimeStampBaseModel):
     quantity = models.PositiveIntegerField()
     price = models.FloatField()
     is_active = models.BooleanField()
-    
 
     def __str__(self):
         return '{}'.format(self.product)

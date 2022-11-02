@@ -1,24 +1,31 @@
-
+{% load static %}
 <html>
-    <head>
-        <title>website</title>
-    </head>
+<link rel="stylesheet" href="{% static 'mycss.css' %}">
+
+<head>
+    <title>website</title>
+</head>
+
 <body style="text-align: center;">
+
     <h1>Ecommerce Website</h1>
-    <form method="GET" action="{% url 'search' %}" >
-            <input type="search" name="search" placeholder="Search...">
-            <button type="submit"> Search </button>
+    <nav id="nav">
+        <a href="{% url 'view_product' %}" class="a"><img src="/images/home.jpeg" alt="Home"></a>
+        <a href="{% url 'cart' %}" class="a"><img src="/images/cart.jpg" alt="cart"></a>
+        <a href="{% url 'wishlist' %}" class="a"><img src="/images/wish.jpeg" alt="wishlist"></a>
+        <a href="{% url 'order_history' %}" class="a"><img src="/images/order.jpeg" alt="order"></a>
+        <a href="{% url 'logout' %}" class="a"><img src="/images/logout.jpeg" alt="logout"></a>
+    </nav>
+    <br>
+    <form method="GET" action="{% url 'search' %}">
+        <input type="search" name="search" placeholder="Search...">
+        <button type="submit"> Search </button>
     </form>
-    <a style = 'padding-right: 10px;padding-top: 100px;'href = "{% url 'cart' %}">cart</a> 
-    <a style = 'padding-right: 10px;padding-top: 100px;'href = "{% url 'wishlist' %}">wishlist</a> 
-    <a style = 'padding-right: 10px;padding-top: 100px;'href = "{% url 'order_history' %}">orders</a> 
-    <a style = 'padding-right: 500px;'href = "{% url 'logout' %}">logout</a>
 </body>
+
 </html>
 {% for message in messages %}
-	{{message}}
+{{message}}
 {% endfor %}
 {% block content %}
 {% endblock %}
-
-
