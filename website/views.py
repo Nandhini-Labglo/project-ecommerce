@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse
+from django.core import serializers
 from django.shortcuts import render, redirect, get_object_or_404
 from requests import request
 
@@ -39,7 +40,8 @@ class SearchView(ListView):
             result = postresult
         else:
             result = Product.objects.none()
-        return result
+        data = serializers.serialize("json", result, indent=4)
+        return JsonResponse(data,safe=False)
     
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data(**kwargs)
@@ -140,7 +142,7 @@ def cancel_order(request, order_id, cart_id):
                 if i['product__price'] is not None:
                     l.append(i['product__price']* i['product__quantity'])
         else:
-            l = [0,0]
+            l = [0]
     price = sum(l)
     tax = price * 0.18
     total = tax+price
@@ -172,3 +174,42 @@ def remove_from_wishlist(request, product_id):
 def view_wishlist(request):
     wishlist = Wishlistitems.objects.filter(user=request.user)
     return render(request, 'wishlist.html', {'wlist': wishlist})
+
+class productList(ListView):
+
+    model = Product
+    def render_to_response(self,request):
+        queryset = self.get_queryset()
+        data = serializers.serialize("json", queryset, indent=4)
+        return HttpResponse(data,content_type="application/json")
+
+class cartList(ListView):
+
+    model = Cart 
+    def render_to_response(self,request):
+        queryset = self.get_queryset()
+        data = serializers.serialize("json", queryset, indent=4)
+        return HttpResponse(data,content_type="application/json")
+
+class SearchList(ListView):
+
+    model = Product
+    def render_to_response(self,request):
+        result = self.get_queryset()
+        query = self.request.GET.get('search')
+        print(query)
+        if query:
+            postresult = Product.objects.filter(
+                Q(title__icontains=query) | Q(brand__brand_name__icontains=query), in_stock=True)
+            result = postresult
+        data = serializers.serialize("json", result, indent=4)
+        return  HttpResponse(data,content_type="application/json")
+
+class addcartList(ListView):
+
+    model = Cart 
+    def render_to_response(self,request):
+        queryset = self.get_queryset()
+        cart = Cart.objects.filter(Q(user=request.user) & Q(is_active=True))
+        data = serializers.serialize("json", cart, indent=4)
+        return HttpResponse(data,content_type="application/json")

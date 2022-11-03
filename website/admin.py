@@ -9,6 +9,10 @@ admin.site.register(Brand, Brandadmin)
 
 class productadmin(admin.ModelAdmin):
     list_display = ['id','title','image','price','in_stock']
+    search_fields = ('title','price')
+    list_display_links =('price',)
+    list_editable = ('title',)
+    list_filter = ('price',)
 admin.site.register(Product, productadmin)
 
 class cartadmin(admin.ModelAdmin):
