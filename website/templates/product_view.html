@@ -2,16 +2,15 @@
 {% block content %}
 {% load static %}
 <html>
-<link rel="stylesheet" href="{% static 'mycss.css' %}">
 
 <head>
+  <link rel="stylesheet" href="{% static 'mycss.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <title>products</title>
 </head>
 
 <body>
-
-  <h1></h1><br>
-
 
   {% for product in product %}
   <div class="container">
@@ -21,13 +20,11 @@
         <img id="img" src="{{ product.image.url }}" alt="Card image cap">
         <div class="card-body">
           <h4 class="card-title">{{ product.title }}</h4>
-          <p class="card-text"><img src="{{ product.brand.brand_logo.url }}" width="50px">
-          </p>
+          <p class="card-text"><img src="{{ product.brand.brand_logo.url }}" width="50px"></p>
           <p class="card-text">Price - {{ product.price }}</p>
 
-
           {% if product in wish %}
-          <button type="submit">Already in wishlist</button><br><br>
+          <i class="fa fa-heart"></i><br><br>
           {% else %}
           <form method="post" action="{% url 'add_to_wishlist' product.id %}">
             {% csrf_token %}
@@ -36,13 +33,13 @@
           {% endif %}
           <form method="post" action="{% url 'add_to_cart' product.id %}">
             {% csrf_token %}
-            <button type="submit">Add to Cart</button><br>
+            <button type="submit" class="button">Add to Cart</button><br>
           </form>
         </div>
       </div>
     </div>
   </div>
-  <br>
+
   {% endif %}
   {% endfor %}
 

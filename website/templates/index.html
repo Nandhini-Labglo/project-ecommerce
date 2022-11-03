@@ -1,6 +1,7 @@
 {% load static %}
 <html>
 <link rel="stylesheet" href="{% static 'mycss.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <head>
     <title>website</title>
@@ -8,19 +9,29 @@
 
 <body style="text-align: center;">
 
-    <h1>Ecommerce Website</h1>
-    <nav id="nav">
-        <a href="{% url 'view_product' %}" class="a"><img src="/images/home.jpeg" alt="Home"></a>
-        <a href="{% url 'cart' %}" class="a"><img src="/images/cart.jpg" alt="cart"></a>
-        <a href="{% url 'wishlist' %}" class="a"><img src="/images/wish.jpeg" alt="wishlist"></a>
-        <a href="{% url 'order_history' %}" class="a"><img src="/images/order.jpeg" alt="order"></a>
-        <a href="{% url 'logout' %}" class="a"><img src="/images/logout.jpeg" alt="logout"></a>
-    </nav>
+    <h1><img src="/images/flipkart-plus_8d85f4.png" alt="image" width="150px"></h1>
+
+    <div class="topnav">
+        <a href="{% url 'view_product' %}"><i class="fa fa-home"></i> Home</a>
+        <a href="{% url 'cart' %}" style="float: right;"><i class="fa fa-cart"></i>Cart</a>
+        <a href="{% url 'wishlist' %}" style="float: right;" class="fa fa-heart"> Wishlist</a>
+        <a href="{% url 'order_history' %}" style="float: right;">Orders</a>
+        <a href="{% url 'login' %}" style="float: right;">Login</a>
+        <div class="search-container">
+            <form method="GET" action="{% url 'search' %}">
+                <input type="text" placeholder="Search.." name="search">
+                <button type="submit"><i class="fa fa-search"></i></button>
+            </form>
+        </div>
+    </div>
+
     <br>
-    <form method="GET" action="{% url 'search' %}">
-        <input type="search" name="search" placeholder="Search...">
-        <button type="submit"> Search </button>
-    </form>
+    <div>
+        <form method="GET" action="{% url 'searchlist' %}">
+            <input type="text" placeholder="Search.." name="search">
+            <button type="submit"><i class="fa fa-search"></i></button>
+        </form>
+    </div>
 </body>
 
 </html>
