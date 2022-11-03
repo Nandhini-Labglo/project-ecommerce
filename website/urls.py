@@ -28,5 +28,7 @@ urlpatterns = [
     path('searchlist/',views.SearchList.as_view(),name='searchlist'),
     path('cartlist/',views.cartList.as_view(),name='cartlist'),
     path('addcartlist/',views.addcartList.as_view(),name='addcartlist'),
+    path('orderlist/',views.orderList.as_view(),name='orderlist'),
+    path('lastorderlist/',views.lastorderList.as_view(),name='lastorderlist'),
     
 ]

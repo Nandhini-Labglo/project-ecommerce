@@ -183,14 +183,6 @@ class productList(ListView):
         data = serializers.serialize("json", queryset, indent=4)
         return HttpResponse(data,content_type="application/json")
 
-class cartList(ListView):
-
-    model = Cart 
-    def render_to_response(self,request):
-        queryset = self.get_queryset()
-        data = serializers.serialize("json", queryset, indent=4)
-        return HttpResponse(data,content_type="application/json")
-
 class SearchList(ListView):
 
     model = Product
@@ -205,11 +197,38 @@ class SearchList(ListView):
         data = serializers.serialize("json", result, indent=4)
         return  HttpResponse(data,content_type="application/json")
 
+class cartList(ListView):
+
+    model = Cart 
+    def render_to_response(self,request):
+        queryset = self.get_queryset()
+        data = serializers.serialize("json", queryset, indent=4)
+        return HttpResponse(data,content_type="application/json")
+
 class addcartList(ListView):
 
     model = Cart 
     def render_to_response(self,request):
         queryset = self.get_queryset()
-        cart = Cart.objects.filter(Q(user=request.user) & Q(is_active=True))
+        cart = queryset.filter(Q(user_id=self.request.user.id) & Q(is_active=True))
         data = serializers.serialize("json", cart, indent=4)
         return HttpResponse(data,content_type="application/json")
+
+class orderList(ListView):
+
+    model = Order
+    def render_to_response(self,request):
+        queryset = self.get_queryset()
+        data = serializers.serialize("json", queryset, indent=4)
+        return HttpResponse(data,content_type="application/json")
+
+class lastorderList(ListView):
+
+    model = Order
+    def render_to_response(self,request):
+        queryset = self.get_queryset()
+        orders = queryset.latest('id')
+        data = serializers.serialize("json", orders, indent=4)
+        return HttpResponse(data,content_type="application/json")
+
+    
