@@ -8,7 +8,7 @@
   <title>wishlist</title>
 </head>
 
-<body style='text-align: center;'>
+<body style="text-align:center;">
   <h1>wishlist</h1><br>
 
   <div class="box-element">
@@ -27,25 +27,26 @@
           <p class="card-text">Price - {{ product.price }}</p>
           <form method="post" action="{% url 'add_to_cart' product.id %}">
             {% csrf_token %}
-            <button type="submit" class="button">Add to Cart</button><br>
+            <button type="submit" class="button success">Add to Cart</button><br>
           </form>
 
           <form method="post" action="{% url 'remove_wish' product.id %}">
             {% csrf_token %}
-            <button type="sumbit">remove wishlist</button><br>
+            <button type="sumbit" class="button danger">remove wishlist</button><br>
           </form>
         </div>
       </div>
     </div>
   </div>
-  <br>
-      {% endfor %}
-      {% endfor %}
+  {% endfor %}
+  {% endfor %}
 
-      {% if messages %}
-      {{message}}
-      {% endif %}
+  <div style="margin-top: auto;">
+    {% if messages %}
+    <h5>{{message}}</h5>
+    {% endif %}
+  </div><br><br>
+
 </body>
-
 </html>
 {% endblock %}

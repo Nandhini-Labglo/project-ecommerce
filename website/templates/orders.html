@@ -6,12 +6,14 @@
     <title>orders</title>
 </head>
 
-<body style="text-align: center;">
+<body style="text-align:center;">
+
     <h1>Your Order</h1><br>
 
     <div class="box-element">
         <a class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a><br><br>
     </div>
+
     {% if cart.price == None %}
 
     {% for product in orders.product.all %}
@@ -49,9 +51,11 @@
     <img src="/images/cart.png">
     {% endif %}
 
-    {% if messages %}
-    {{message}}
-    {% endif %}
-</body>
+    <div style="margin-top: auto;">
+        {% if messages %}
+        <h5>{{message}}</h5>
+        {% endif %}
+    </div><br><br>
 
+</body>
 </html>
