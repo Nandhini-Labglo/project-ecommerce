@@ -26,6 +26,14 @@
     background-color: #3e8e41;
     color: white;
   }
+
+.danger {
+  background-color: #f44336;
+} 
+.danger:hover {
+  background: #da190b;
+}
+
 * {box-sizing: border-box;}
 
 body {
