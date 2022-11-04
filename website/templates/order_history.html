@@ -10,7 +10,7 @@
     <h1> Order history </h1><br>
 
     <div class="box-element">
-        <a class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a>
+        <a class="btn btn-outline-dark" href="{% url 'view_product' %}"> Continue Shopping</a><br><br>
     </div>
     {% for order in order %}
     {% for product in order.product.all %}
@@ -33,7 +33,7 @@
             </div>
             <form method="post" action="{% url 'cancel_order' order.id product.id %}">
                 {% csrf_token %}
-                <button type="sumbit">cancel order</button><br>
+                <button type="sumbit" class="button danger">cancel order</button><br>
             </form>
         </div>
     </div>

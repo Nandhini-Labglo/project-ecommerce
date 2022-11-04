@@ -1,7 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.shortcuts import render, redirect, get_object_or_404
-from requests import request
 
 from website.models import Product, Cart, Order, Wishlistitems
 from django.views.generic.list import ListView
@@ -11,6 +10,7 @@ from django.contrib import messages
 
 from django.db.models import Q
 from django.db.models import F, Sum
+
 # Create your views here.
 
 @login_required
@@ -40,17 +40,15 @@ class SearchView(ListView):
             result = postresult
         else:
             result = Product.objects.none()
-        data = serializers.serialize("json", result, indent=4)
-        return JsonResponse(data,safe=False)
-    
+        return result
+        
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data(**kwargs)
         wish_item = Wishlistitems.objects.get(user=self.request.user.id)
         wishedProducts = wish_item.product.all()
         context['cc'] = wishedProducts
         print(context)
-        return context
-    
+        return context  
 
 def cart_detail(request):
     if request.user.is_authenticated:
@@ -123,7 +121,6 @@ def order_placed(request):
         orders = Order.objects.create(user=user, total_product_price=price['total'], total_tax=tax_charges['tax'], total_order_price=grand_total['grand_total'])
         orders.product.add(*cart)
         cart.update(is_active=False)
-        #orders.update(total_product_price=price['total'],total_tax=tax_charges['tax'],total_order_price=grand_total['grand_total'])
     else:
         orders = Order.objects.latest('id')
     print(orders)
@@ -151,7 +148,6 @@ def cancel_order(request, order_id, cart_id):
         Order.objects.filter(id = order_id).update(status = 0)
     return redirect('orderplaced')
 
-
 def add_to_wishlist(request, product_id):
     print(request.method)
     if request.method == "POST":
@@ -175,7 +171,7 @@ def view_wishlist(request):
     wishlist = Wishlistitems.objects.filter(user=request.user)
     return render(request, 'wishlist.html', {'wlist': wishlist})
 
-class productList(ListView):
+class productapiList(ListView):
 
     model = Product
     def render_to_response(self,request):
@@ -183,7 +179,7 @@ class productList(ListView):
         data = serializers.serialize("json", queryset, indent=4)
         return HttpResponse(data,content_type="application/json")
 
-class SearchList(ListView):
+class SearchapiList(ListView):
 
     model = Product
     def render_to_response(self,request):
@@ -197,7 +193,7 @@ class SearchList(ListView):
         data = serializers.serialize("json", result, indent=4)
         return  HttpResponse(data,content_type="application/json")
 
-class cartList(ListView):
+class cartapiList(ListView):
 
     model = Cart 
     def render_to_response(self,request):
@@ -205,7 +201,7 @@ class cartList(ListView):
         data = serializers.serialize("json", queryset, indent=4)
         return HttpResponse(data,content_type="application/json")
 
-class addcartList(ListView):
+class addcartapiList(ListView):
 
     model = Cart 
     def render_to_response(self,request):
@@ -214,7 +210,7 @@ class addcartList(ListView):
         data = serializers.serialize("json", cart, indent=4)
         return HttpResponse(data,content_type="application/json")
 
-class orderList(ListView):
+class orderapiList(ListView):
 
     model = Order
     def render_to_response(self,request):
@@ -222,7 +218,7 @@ class orderList(ListView):
         data = serializers.serialize("json", queryset, indent=4)
         return HttpResponse(data,content_type="application/json")
 
-class lastorderList(ListView):
+class lastorderapiList(ListView):
 
     model = Order
     def render_to_response(self,request):
