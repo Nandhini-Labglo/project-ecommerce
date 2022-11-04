@@ -41,7 +41,6 @@ class SearchView(ListView):
         else:
             result = Product.objects.none()
         return result
-        
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data(**kwargs)
         wish_item = Wishlistitems.objects.get(user=self.request.user.id)
@@ -51,10 +50,9 @@ class SearchView(ListView):
         return context  
 
 def cart_detail(request):
-    if request.user.is_authenticated:
-        user = request.user
-        carts = Cart.objects.filter(Q(user=user) & Q (is_active=True))
-        price = carts.aggregate(total=Sum(F('quantity')*F('price')))
+    user = request.user
+    carts = Cart.objects.filter(Q(user=user) & Q (is_active=True))
+    price = carts.aggregate(total=Sum(F('quantity')*F('price')))
     context = {'form': carts,'price':price}
     return render(request, 'cart.html', context)
 
@@ -130,8 +128,9 @@ def cancel_order(request, order_id, cart_id):
     print(request.method)
     if request.method == "POST":
         cart = get_object_or_404(Cart, id=cart_id)
-        cart.delete()
-        order = Order.objects.filter(user_id = request.user.id).values('product__price', 'product__quantity')
+        order = get_object_or_404(Order, id=order_id)
+        order.product.remove(cart)
+        order = Order.objects.filter(Q(user_id = request.user.id) & Q(id = order_id)).values('product__price', 'product__quantity')
         print(order)
         l = [] 
         if order:
@@ -139,14 +138,14 @@ def cancel_order(request, order_id, cart_id):
                 if i['product__price'] is not None:
                     l.append(i['product__price']* i['product__quantity'])
         else:
-            l = [0]
-    price = sum(l)
-    tax = price * 0.18
-    total = tax+price
-    Order.objects.filter(id=order_id).update(total_product_price=price,total_tax=tax,total_order_price=total)
-    if total == 0:
-        Order.objects.filter(id = order_id).update(status = 0)
-    return redirect('orderplaced')
+            l = [0,0]
+        price = sum(l)
+        tax = price * 0.18
+        total = tax+price
+        Order.objects.filter(id=order_id).update(total_product_price=price,total_tax=tax,total_order_price=total)
+        if total == 0:
+            Order.objects.filter(id = order_id).update(status = 0)
+    return redirect('order_history')
 
 def add_to_wishlist(request, product_id):
     print(request.method)

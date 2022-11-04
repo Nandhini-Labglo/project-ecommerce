@@ -1,6 +1,5 @@
 .container {
     margin: auto;
-    
     display: inline-block;
   }
 
@@ -22,17 +21,12 @@
     margin: 4px 2px;
     cursor: pointer;
 }
-.button:hover {
-    background-color: #3e8e41;
-    color: white;
-  }
 
-.danger {
-  background-color: #f44336;
-} 
-.danger:hover {
-  background: #da190b;
-}
+.success {background-color: #04AA6D;} /* Green */
+.success:hover {background-color: #46a049;}
+
+.danger {background-color: #f44336;} /* Red */ 
+.danger:hover {background-color: #da190b;}
 
 * {box-sizing: border-box;}
 
