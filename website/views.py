@@ -7,9 +7,12 @@ from django.views.generic.list import ListView
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
 
 from django.db.models import Q
 from django.db.models import F, Sum
+
+import stripe
 
 # Create your views here.
 
@@ -49,11 +52,16 @@ class SearchView(ListView):
         print(context)
         return context  
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 def cart_detail(request):
     user = request.user
     carts = Cart.objects.filter(Q(user=user) & Q (is_active=True))
     price = carts.aggregate(total=Sum(F('quantity')*F('price')))
-    context = {'form': carts,'price':price}
+    tax_charges = carts.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
+    grand_total = carts.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
+    key = settings.STRIPE_PUBLISHABLE_KEY
+    context = {'form': carts,'price':price,'tax_charges':tax_charges,'grand_total':grand_total,'key':key}
     return render(request, 'cart.html', context)
 
 @login_required
@@ -115,12 +123,14 @@ def order_placed(request):
     price = cart.aggregate(total=Sum(F('quantity')*F('price')))
     tax_charges = cart.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
     grand_total = cart.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
+    
     if cart:
         orders = Order.objects.create(user=user, total_product_price=price['total'], total_tax=tax_charges['tax'], total_order_price=grand_total['grand_total'])
         orders.product.add(*cart)
         cart.update(is_active=False)
     else:
         orders = Order.objects.latest('id')
+        stripe.PaymentIntent.create(amount=int(orders.total_order_price),currency="usd",payment_method_types=['card'])
     print(orders)
     return render(request, 'orders.html',{'orders':orders})
 
