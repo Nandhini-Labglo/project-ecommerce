@@ -1,5 +1,5 @@
 from django.contrib import admin
-from website.models import Brand, Product, Cart, Order, Wishlistitems
+from website.models import Brand, Product, Cart, Order, Wishlistitems,Payment
 
 # Register your models here.
 
@@ -26,3 +26,7 @@ admin.site.register(Order, orderadmin)
 class wishadmin(admin.ModelAdmin):
     list_display = ['user']
 admin.site.register(Wishlistitems, wishadmin)
+
+class paymentadmin(admin.ModelAdmin):
+    list_display = ['transaction_id','paid','amount','email']
+admin.site.register(Payment, paymentadmin)

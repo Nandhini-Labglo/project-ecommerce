@@ -1,32 +1,38 @@
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, reverse, redirect, get_object_or_404
 
-from website.models import Product, Cart, Order, Wishlistitems
+from website.models import Product, Cart, Order, Wishlistitems, Payment
 from django.views.generic.list import ListView
+from django.views.generic import View
 
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.conf import settings
 
 from django.db.models import Q
 from django.db.models import F, Sum
 
+import json
 import stripe
 
 # Create your views here.
+
 
 @login_required
 def index(request):
     return render(request, 'index.html')
 
+
 def product_view(request):
-        products = Product.objects.all()
-        wish_item,created = Wishlistitems.objects.get_or_create(user=request.user)
-        wishedProducts = wish_item.product.all()
-        w = list(wishedProducts)
-        context = {'product': products,'wish':w}
-        return render(request, 'product_view.html', context)
+    products = Product.objects.all()
+    wish_item, created = Wishlistitems.objects.get_or_create(user=request.user)
+    wishedProducts = wish_item.product.all()
+    w = list(wishedProducts)
+    context = {'product': products, 'wish': w}
+    return render(request, 'product_view.html', context)
+
 
 class SearchView(ListView):
     model = Product
@@ -44,25 +50,31 @@ class SearchView(ListView):
         else:
             result = Product.objects.none()
         return result
+
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data(**kwargs)
         wish_item = Wishlistitems.objects.get(user=self.request.user.id)
         wishedProducts = wish_item.product.all()
         context['cc'] = wishedProducts
         print(context)
-        return context  
+        return context
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 def cart_detail(request):
     user = request.user
-    carts = Cart.objects.filter(Q(user=user) & Q (is_active=True))
+    carts = Cart.objects.filter(Q(user=user) & Q(is_active=True))
     price = carts.aggregate(total=Sum(F('quantity')*F('price')))
     tax_charges = carts.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
-    grand_total = carts.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
+    grand_total = carts.aggregate(grand_total=Sum(
+        F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
     key = settings.STRIPE_PUBLISHABLE_KEY
-    context = {'form': carts,'price':price,'tax_charges':tax_charges,'grand_total':grand_total,'key':key}
+    context = {'form': carts, 'price': price,
+               'tax_charges': tax_charges, 'grand_total': grand_total, 'key': key}
     return render(request, 'cart.html', context)
+
 
 @login_required
 def add_to_cart(request, product_id):
@@ -70,8 +82,8 @@ def add_to_cart(request, product_id):
         product = get_object_or_404(Product, id=product_id)
         cart, created = Cart.objects.get_or_create(
             product=product,
-            price = product.price,
-            quantity = 0,
+            price=product.price,
+            quantity=0,
             user=request.user,
             is_active=True
         )
@@ -85,6 +97,7 @@ def add_to_cart(request, product_id):
         cart.save()
         messages.info(request, "This item quantity was updated.")
     return redirect('view_product')
+
 
 def remove_item_cart(request, product_id):
     if request.method == "POST":
@@ -103,7 +116,8 @@ def remove_item_cart(request, product_id):
             messages.info(request, "This item quantity was updated.")
             return redirect('cart')
     return redirect('cart')
-    
+
+
 def remove_cart(request, cart_id):
     print(request.method)
     if request.method == "POST":
@@ -111,10 +125,12 @@ def remove_cart(request, cart_id):
         cart.delete()
     return redirect('cart')
 
+
 def order_history(request):
     order = Order.objects.filter(user=request.user)
-    context = {'order':order}
-    return render(request, 'order_history.html',context)
+    context = {'order': order}
+    return render(request, 'order_history.html', context)
+
 
 @login_required
 def order_placed(request):
@@ -122,17 +138,23 @@ def order_placed(request):
     cart = Cart.objects.filter(Q(user=user) & Q(is_active=True))
     price = cart.aggregate(total=Sum(F('quantity')*F('price')))
     tax_charges = cart.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
-    grand_total = cart.aggregate(grand_total=Sum(F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
-    
+    grand_total = cart.aggregate(grand_total=Sum(
+        F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
+    orders = Order.objects.latest('id')
+    stripe.PaymentIntent.create(amount=int(
+        orders.total_order_price), currency="usd", payment_method_types=['card'])
+
     if cart:
-        orders = Order.objects.create(user=user, total_product_price=price['total'], total_tax=tax_charges['tax'], total_order_price=grand_total['grand_total'])
+        orders = Order.objects.create(
+            user=user, total_product_price=price['total'], total_tax=tax_charges['tax'], total_order_price=grand_total['grand_total'])
         orders.product.add(*cart)
         cart.update(is_active=False)
     else:
         orders = Order.objects.latest('id')
-        stripe.PaymentIntent.create(amount=int(orders.total_order_price),currency="usd",payment_method_types=['card'])
+
     print(orders)
-    return render(request, 'orders.html',{'orders':orders})
+    return render(request, 'orders.html', {'orders': orders})
+
 
 def cancel_order(request, order_id, cart_id):
     print(request.method)
@@ -140,31 +162,37 @@ def cancel_order(request, order_id, cart_id):
         cart = get_object_or_404(Cart, id=cart_id)
         order = get_object_or_404(Order, id=order_id)
         order.product.remove(cart)
-        order = Order.objects.filter(Q(user_id = request.user.id) & Q(id = order_id)).values('product__price', 'product__quantity')
+        order = Order.objects.filter(Q(user_id=request.user.id) & Q(
+            id=order_id)).values('product__price', 'product__quantity')
         print(order)
-        l = [] 
+        l = []
         if order:
             for i in order:
                 if i['product__price'] is not None:
-                    l.append(i['product__price']* i['product__quantity'])
+                    l.append(i['product__price'] * i['product__quantity'])
         else:
-            l = [0,0]
+            l = [0, 0]
         price = sum(l)
         tax = price * 0.18
         total = tax+price
-        Order.objects.filter(id=order_id).update(total_product_price=price,total_tax=tax,total_order_price=total)
+        Order.objects.filter(id=order_id).update(
+            total_product_price=price, total_tax=tax, total_order_price=total)
         if total == 0:
-            Order.objects.filter(id = order_id).update(status = 0)
+            Order.objects.filter(id=order_id).update(status=0)
     return redirect('order_history')
+
 
 def add_to_wishlist(request, product_id):
     print(request.method)
     if request.method == "POST":
         products = Product.objects.get(id=product_id)
-        wishlist,created = Wishlistitems.objects.get_or_create(user=request.user)
+        wishlist, created = Wishlistitems.objects.get_or_create(
+            user=request.user)
         wishlist.product.add(products)
-        messages.success(request, "Added " + products.title + " to your WishList")
+        messages.success(request, "Added " +
+                         products.title + " to your WishList")
     return redirect('view_product')
+
 
 def remove_from_wishlist(request, product_id):
     print(request.method)
@@ -172,26 +200,32 @@ def remove_from_wishlist(request, product_id):
         products = get_object_or_404(Product, id=product_id)
         wishlist = get_object_or_404(Wishlistitems, user=request.user)
         wishlist.product.remove(products)
-        messages.success(request, products.title + " has been removed from your WishList")
+        messages.success(request, products.title +
+                         " has been removed from your WishList")
     return redirect('view_product')
+
 
 @login_required
 def view_wishlist(request):
     wishlist = Wishlistitems.objects.filter(user=request.user)
     return render(request, 'wishlist.html', {'wlist': wishlist})
 
+
 class productapiList(ListView):
 
     model = Product
-    def render_to_response(self,request):
+
+    def render_to_response(self, request):
         queryset = self.get_queryset()
         data = serializers.serialize("json", queryset, indent=4)
-        return HttpResponse(data,content_type="application/json")
+        return HttpResponse(data, content_type="application/json")
+
 
 class SearchapiList(ListView):
 
     model = Product
-    def render_to_response(self,request):
+
+    def render_to_response(self, request):
         result = self.get_queryset()
         query = self.request.GET.get('search')
         print(query)
@@ -200,40 +234,113 @@ class SearchapiList(ListView):
                 Q(title__icontains=query) | Q(brand__brand_name__icontains=query), in_stock=True)
             result = postresult
         data = serializers.serialize("json", result, indent=4)
-        return  HttpResponse(data,content_type="application/json")
+        return HttpResponse(data, content_type="application/json")
+
 
 class cartapiList(ListView):
 
-    model = Cart 
-    def render_to_response(self,request):
+    model = Cart
+
+    def render_to_response(self, request):
         queryset = self.get_queryset()
         data = serializers.serialize("json", queryset, indent=4)
-        return HttpResponse(data,content_type="application/json")
+        return HttpResponse(data, content_type="application/json")
+
 
 class addcartapiList(ListView):
 
-    model = Cart 
-    def render_to_response(self,request):
+    model = Cart
+
+    def render_to_response(self, request):
         queryset = self.get_queryset()
-        cart = queryset.filter(Q(user_id=self.request.user.id) & Q(is_active=True))
+        cart = queryset.filter(
+            Q(user_id=self.request.user.id) & Q(is_active=True))
         data = serializers.serialize("json", cart, indent=4)
-        return HttpResponse(data,content_type="application/json")
+        return HttpResponse(data, content_type="application/json")
+
 
 class orderapiList(ListView):
 
     model = Order
-    def render_to_response(self,request):
+
+    def render_to_response(self, request):
         queryset = self.get_queryset()
         data = serializers.serialize("json", queryset, indent=4)
-        return HttpResponse(data,content_type="application/json")
+        return HttpResponse(data, content_type="application/json")
+
 
 class lastorderapiList(ListView):
 
     model = Order
-    def render_to_response(self,request):
+
+    def render_to_response(self, request):
         queryset = self.get_queryset()
         orders = queryset.latest('id')
         data = serializers.serialize("json", orders, indent=4)
-        return HttpResponse(data,content_type="application/json")
+        return HttpResponse(data, content_type="application/json")
 
-    
+
+class CreatecheckoutSessionView(View):
+    def post(self, *args, **kwargs):
+        host = self.request.get_host()
+        cart = Cart(self.request)
+        payment=Payment(email=" ",paid="False",amount=0,transaction_id=" ")
+        payment.save()
+        items = []
+        total_price = 0
+        for item in cart:
+            product = item['product']
+            total_price += product.price * int(item['quantity'])
+            tax = 0.18 * total_price
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'inr',
+                        'unit_amount': tax,
+                        'product_data': {
+                            'name': product.name,
+                        },
+                    },
+                    'quantity': item['quantity'],
+                }
+            ],
+            metadata={
+                "order_id":payment.id
+            },
+            mode='payment',
+            success_url="http://{}{}".format(host, reverse('payment-success')),
+            cancel_url="http://{}{}".format(host, reverse('payment-cancel')),
+        )
+        return redirect(checkout_session.url, code=303)
+
+
+def paymentsuccess(request):
+    context = {
+        'payment_status': 'success'
+    }
+    return render(request, 'orderconfirmation.html', context)
+
+
+def paymentcancel(request):
+    context = {
+        'payment_status': 'cancel'
+    }
+    return render(request, 'orderconfirmation.html', context)
+
+@csrf_exempt
+def webhook_view(request):
+    payload = request.body.decode('UTF-8')
+    event = json.loads(payload)
+    print(payload)
+    if event['type'] == 'charge.succeeded':
+        session = event['data']['object']
+        customer_email = session["customer_details"]["email"]
+        price = session["amount_total"] 
+        sessionID = session["id"]
+        ID=session["metadata"]["order_id"]
+        
+        Payment.objects.filter(id=ID).update(email=customer_email,amount=price,paid=True,transaction_id=sessionID)
+
+    return HttpResponse(True, status=200)

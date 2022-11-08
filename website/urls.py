@@ -35,5 +35,9 @@ urlpatterns = [
     path('addcartlist/',views.addcartapiList.as_view(),name='addcartlist'),
     path('orderlist/',views.orderapiList.as_view(),name='orderlist'),
     path('lastorderlist/',views.lastorderapiList.as_view(),name='lastorderlist'),
-    
+
+    path('create-checkout-session/',views.CreatecheckoutSessionView.as_view(),name='create-checkout-session'),
+    path('payment-success/',views.paymentsuccess,name='payment-success'), 
+    path('payment-cancel/',views.paymentcancel,name='payment-cancel'),  
+    path('webhook/',views.webhook_view,name='webhook_view'),
 ]

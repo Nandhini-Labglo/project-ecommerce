@@ -92,8 +92,13 @@ class Wishlistitems(TimeStampBaseModel):
     def __str__(self):
         return '{}'.format(self.user)
     
+class Payment(TimeStampBaseModel):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    transaction_id = models.TextField()
+    paid = models.BooleanField()
+    amount = models.IntegerField()
+    email  = models.EmailField(null=True)
 
-    
-
-
+    def __str__(self):
+        return '{}'.format(self.user)
         
