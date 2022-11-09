@@ -16,17 +16,17 @@ class productadmin(admin.ModelAdmin):
 admin.site.register(Product, productadmin)
 
 class cartadmin(admin.ModelAdmin):
-    list_display = ['product','user','quantity','is_active','price']
+    list_display = ['id','product','user','quantity','is_active','price']
 admin.site.register(Cart, cartadmin)
 
 class orderadmin(admin.ModelAdmin):
-    list_display = ['user','status','total_product_price','total_tax','total_order_price']
+    list_display = ['id','user','status',]
 admin.site.register(Order, orderadmin)
 
 class wishadmin(admin.ModelAdmin):
-    list_display = ['user']
+    list_display = ['id','user']
 admin.site.register(Wishlistitems, wishadmin)
 
 class paymentadmin(admin.ModelAdmin):
-    list_display = ['transaction_id','paid','amount','email']
+    list_display = ['id','order','transaction_id','payment_status',]
 admin.site.register(Payment, paymentadmin)

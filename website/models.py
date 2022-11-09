@@ -13,6 +13,12 @@ ORDER_STATUS_CHOICES = (
     (PENDING, 'Pending'),
 )  
 
+PAYMENT_STATUS_CHOICES = (
+    (SUCCESS, 'Success'),
+    (FAILED, 'Failed'),
+    (PENDING, 'Pending'),
+)  
+
 class TimeStampBaseModel(models.Model):
     created_on =  models.DateTimeField(auto_now_add=True)
     updated_on =  models.DateTimeField(auto_now=True)
@@ -64,12 +70,9 @@ class Order(TimeStampBaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ManyToManyField(Cart)
     status = models.IntegerField(default=2, choices=ORDER_STATUS_CHOICES)
-    total_product_price = models.FloatField()
-    total_tax = models.FloatField()
     total_order_price = models.FloatField()
-
     def __str__(self):
-        return '{}'.format(self.user)
+        return '{}'.format(self.id)
 
     def get_total_price(self):
         total = 0
@@ -93,12 +96,10 @@ class Wishlistitems(TimeStampBaseModel):
         return '{}'.format(self.user)
     
 class Payment(TimeStampBaseModel):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE,null=True)
     transaction_id = models.TextField()
-    paid = models.BooleanField()
-    amount = models.IntegerField()
-    email  = models.EmailField(null=True)
+    payment_status = models.IntegerField(default=2, choices=PAYMENT_STATUS_CHOICES)
 
     def __str__(self):
-        return '{}'.format(self.user)
+        return '{}'.format(self.transaction_id)
         

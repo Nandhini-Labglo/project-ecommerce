@@ -2,6 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.shortcuts import render, reverse, redirect, get_object_or_404
 
+from django.contrib.auth.models import User
 from website.models import Product, Cart, Order, Wishlistitems, Payment
 from django.views.generic.list import ListView
 from django.views.generic import View
@@ -140,9 +141,6 @@ def order_placed(request):
     tax_charges = cart.aggregate(tax=Sum(F('quantity')*F('price')*0.18))
     grand_total = cart.aggregate(grand_total=Sum(
         F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
-    orders = Order.objects.latest('id')
-    stripe.PaymentIntent.create(amount=int(
-        orders.total_order_price), currency="usd", payment_method_types=['card'])
 
     if cart:
         orders = Order.objects.create(
@@ -162,23 +160,6 @@ def cancel_order(request, order_id, cart_id):
         cart = get_object_or_404(Cart, id=cart_id)
         order = get_object_or_404(Order, id=order_id)
         order.product.remove(cart)
-        order = Order.objects.filter(Q(user_id=request.user.id) & Q(
-            id=order_id)).values('product__price', 'product__quantity')
-        print(order)
-        l = []
-        if order:
-            for i in order:
-                if i['product__price'] is not None:
-                    l.append(i['product__price'] * i['product__quantity'])
-        else:
-            l = [0, 0]
-        price = sum(l)
-        tax = price * 0.18
-        total = tax+price
-        Order.objects.filter(id=order_id).update(
-            total_product_price=price, total_tax=tax, total_order_price=total)
-        if total == 0:
-            Order.objects.filter(id=order_id).update(status=0)
     return redirect('order_history')
 
 
@@ -283,36 +264,42 @@ class lastorderapiList(ListView):
 class CreatecheckoutSessionView(View):
     def post(self, *args, **kwargs):
         host = self.request.get_host()
-        cart = Cart(self.request)
-        payment=Payment(email=" ",paid="False",amount=0,transaction_id=" ")
-        payment.save()
-        items = []
-        total_price = 0
+        cart = Cart.objects.filter(Q(user=self.request.user.id) & Q(is_active=True))
+        grand_total = cart.aggregate(grand_total=Sum(
+            F('quantity')*F('price')*0.18 + (F('quantity')*F('price'))))
+        user = self.request.user
+        print(user.id)
+        order = Order.objects.create(user_id = user.id,status=2,total_order_price=grand_total['grand_total'])
+        order.product.add(*cart)
+        cart.update(is_active=False)
+        print(order.id)
         for item in cart:
-            product = item['product']
-            total_price += product.price * int(item['quantity'])
-            tax = 0.18 * total_price
+            product_name = item.product.title
+            product_quantity = item.quantity
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[
                 {
                     'price_data': {
                         'currency': 'inr',
-                        'unit_amount': tax,
+                        'unit_amount': int(grand_total['grand_total']),
                         'product_data': {
-                            'name': product.name,
+                            'name': 'mobile',
                         },
                     },
-                    'quantity': item['quantity'],
+                    'quantity':1,
                 }
             ],
-            metadata={
-                "order_id":payment.id
+            metadata = {
+                "order_id" : order.id
             },
             mode='payment',
             success_url="http://{}{}".format(host, reverse('payment-success')),
             cancel_url="http://{}{}".format(host, reverse('payment-cancel')),
         )
+        payment = Payment.objects.create(order_id = order.id,transaction_id=checkout_session['id'],payment_status=2)
+        payment.save()
+        print(checkout_session)
         return redirect(checkout_session.url, code=303)
 
 
@@ -331,16 +318,18 @@ def paymentcancel(request):
 
 @csrf_exempt
 def webhook_view(request):
-    payload = request.body.decode('UTF-8')
+    payload = request.body.decode('utf-8')
     event = json.loads(payload)
     print(payload)
-    if event['type'] == 'charge.succeeded':
+    if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        customer_email = session["customer_details"]["email"]
-        price = session["amount_total"] 
         sessionID = session["id"]
+        print(sessionID)
         ID=session["metadata"]["order_id"]
-        
-        Payment.objects.filter(id=ID).update(email=customer_email,amount=price,paid=True,transaction_id=sessionID)
-
+        print(ID)
+        Payment.objects.filter(transaction_id=sessionID).update(payment_status=1)
+        Order.objects.filter(id=ID).update(status=1)
+    elif event['type'] == 'charge.failed':
+        Payment.objects.filter(transaction_id=sessionID).update(payment_status=0)
+        Order.objects.filter(transaction_id=sessionID).update(status=0)
     return HttpResponse(True, status=200)

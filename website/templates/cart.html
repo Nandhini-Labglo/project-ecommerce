@@ -49,11 +49,12 @@
         Tax:<h3>{{tax_charges.tax}}</h3>
         Grand Total:<h3>{{grand_total.grand_total}}</h3>
     </div>
+
     <form method="post" action="{% url 'create-checkout-session' %}">
         {% csrf_token %}
-            <input type="hidden" name="order-id" value="{{order.id}}">
             <button type="submit">checkout</button>
     </form>
+    
     <form method="post" action="{% url 'orderplaced' %}">
         {% csrf_token %}
         <script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
